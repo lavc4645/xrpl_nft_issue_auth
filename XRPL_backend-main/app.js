@@ -427,8 +427,11 @@ app.post("/mintnft", async (req, res) => {
             // console.log("Metadata CID " + check1.path);
             const uri = xrpl.convertStringToHex("ipfs://" + check1.path);
             const standby_wallet = xrpl.Wallet.fromSecret(
-              "shPfJ8kKWHEqxqNMpCPWUk3pTrk5E"
+              "sEd7XKra4i7kBmD3PUR7vagEURwsSE6"
             );
+            // const issuer_wallet = xrpl.Wallet.fromSeed(
+            //   "sEdVSaAar8cCtGXSqW5SMprZiikzX2E"
+            // );
             const client = new xrpl.Client(
               "wss://xls20-sandbox.rippletest.net:51233"
             );
@@ -457,59 +460,35 @@ app.post("/mintnft", async (req, res) => {
             // }
             const request2 = {
               TransactionType: "NFTokenMint",
-              Account: standby_wallet.classicAddress,
+              Account: walletaddress,
               URI: uri,
               Flags: 12,
-              TransferFee: 15,
-              Issuer: walletaddress,
+              TransferFee: 314,
+              Fee: 10,
+              Issuer: standby_wallet.classicAddress,
               NFTokenTaxon: 0, //Required, but if you have no use for it, set to zero.
             };
 
             const tx_json = {
               TransactionType: "AccountSet",
-              Fee: "12",
-              Domain: "6578616D706C652E636F6D",
-              SetFlag: 5,
-              MessageKey:
-                "03AB40A0490F9B7ED8DF29D246BF2D6269820A0EE7742ACDD457BEA7C7D0931EDB",
               Account: standby_wallet.classicAddress,
               NFTokenMinter: walletaddress,
               SetFlag: 12,
             };
-            const subscription2 = await Sdk.payload.createAndSubscribe(
-              tx_json,
-              (event) => {
-                console.log("New payload event:", event.data);
 
-                //  The event data contains a property 'signed' (true or false), return :)
-                if (Object.keys(event.data).indexOf("signed") > -1) {
-                  return event.data;
-                }
-              }
-            );
+            const result = await client.submitAndWait(tx_json, {
+              wallet: standby_wallet,
+            });
 
-            console.log(
-              "New payload created,URL:",
-              subscription2.created.next.always
-            );
-            console.log(
-              "  > Pushed:",
-              subscription2.created.pushed ? "yes" : "no"
-            );
-
-            // const result = await client.submitAndWait(tx_json, {
-            //   wallet: standby_wallet,
-            // });
-
-            // if (result.result.meta.TransactionResult == "tesSUCCESS") {
-            //   results += "\nAccount setting succeeded.";
-            //   results += JSON.stringify(result, null, 2);
-            //   console.log(results);
-            // } else {
-            //   throw "Error sending transaction: ${result}";
-            //   results += "\nAccount setting failed.";
-            //   console.log(results);
-            // }
+            if (result.result.meta.TransactionResult == "tesSUCCESS") {
+              results += "\nAccount setting succeeded.";
+              results += JSON.stringify(result, null, 2);
+              console.log(results);
+            } else {
+              throw "Error sending transaction: ${result}";
+              results += "\nAccount setting failed.";
+              console.log(results);
+            }
             console.log("Account set");
 
             const subscription = await Sdk.payload.createAndSubscribe(
