@@ -460,39 +460,39 @@ app.post("/mintnft", async (req, res) => {
             // }
             const request2 = {
               TransactionType: "NFTokenMint",
-              Account: walletaddress,
+              Account: standby_wallet.classicAddress,
               URI: uri,
-              Flags: 12,
-              TransferFee: 314,
-              Fee: 10,
-              Issuer: standby_wallet.classicAddress,
+              Flags: 15,
+              // TransferFee: 314,
+              Fee: "10",
+              Issuer: walletaddress,
               NFTokenTaxon: 0, //Required, but if you have no use for it, set to zero.
             };
 
             const tx_json = {
               TransactionType: "AccountSet",
-              Account: standby_wallet.classicAddress,
-              NFTokenMinter: walletaddress,
-              SetFlag: 12,
+              Account: walletaddress,
+              NFTokenMinter: standby_wallet.classicAddress,
+              SetFlag: 10,
+              TransferFee: 314,
+              Fee: "10",
             };
+            // const tx_json = {
+            //   TransactionType: "AccountSet",
+            //   Account: walletaddress,
+            //   NFTokenMinter: standby_wallet.classicAddress,
+            //   Fee: "12",
+            //   // Sequence: 5,
+            //   // Domain: "6578616D706C652E636F6D",
+            //   SetFlag: 5,
+            //   // MessageKey:
+            //   //   "03AB40A0490F9B7ED8DF29D246BF2D6269820A0EE7742ACDD457BEA7C7D0931EDB",
+            // };
 
-            const result = await client.submitAndWait(tx_json, {
-              wallet: standby_wallet,
-            });
-
-            if (result.result.meta.TransactionResult == "tesSUCCESS") {
-              results += "\nAccount setting succeeded.";
-              results += JSON.stringify(result, null, 2);
-              console.log(results);
-            } else {
-              throw "Error sending transaction: ${result}";
-              results += "\nAccount setting failed.";
-              console.log(results);
-            }
-            console.log("Account set");
+            // console.log("Account set");
 
             const subscription = await Sdk.payload.createAndSubscribe(
-              request2,
+              tx_json,
               (event) => {
                 console.log("New payload event:", event.data);
 
@@ -530,8 +530,23 @@ app.post("/mintnft", async (req, res) => {
             } else {
               console.log("Woohoo! The sign request was signed :)");
 
-              const result = await Sdk.payload.get(resolveData.payload_uuidv4);
+              let result = await Sdk.payload.get(resolveData.payload_uuidv4);
               console.log("On ledger TX hash:", result.response.txid);
+              console.log("Account Set");
+
+              result = await client.submitAndWait(request2, {
+                wallet: standby_wallet,
+              });
+
+              if (result.result.meta.TransactionResult == "tesSUCCESS") {
+                results += "\nAccount setting succeeded.";
+                results += JSON.stringify(result, null, 2);
+                console.log(results);
+              } else {
+                throw "Error sending transaction: ${result}";
+                results += "\nAccount setting failed.";
+                console.log(results);
+              }
               res.setHeader(
                 "Access-Control-Allow-Methods",
                 "GET, POST, OPTIONS, PUT, PATCH, DELETE"
@@ -544,6 +559,20 @@ app.post("/mintnft", async (req, res) => {
               );
               res.send("NFT minted Successfully");
             }
+
+            const nfts = await client.request({
+              method: "account_nfts",
+              account: standby_wallet.classicAddress,
+            });
+            const total_nft = nfts.result.account_nfts;
+            console.log(total_nft);
+            var total = total_nft.map((v) => {
+              return {
+                ...v, // (...) Spread operator
+                nft_url: xrpl.convertHexToString(v.URI),
+              };
+            });
+            // console.log("Total NFT Details: ", nfts.result, + "\n\n\n\n\n\n\n\n")
 
             // console.log('New payload created,URL:', subscription.created.next.always)
             //console.log('  > Pushed:', subscription.created.pushed ? 'yes' : 'no')
