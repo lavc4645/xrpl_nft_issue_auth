@@ -5,7 +5,7 @@ import axios from "axios";
 import Modals from "./modal";
 import io from "socket.io-client";
 
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect("http://localhost:5001");
 
 function Data() {
   const [Nftname, setNftname] = useState("");
@@ -35,7 +35,7 @@ function Data() {
       console.log(formdata);
       console.log(walletaddress);
       const response = await axios.post(
-        `http://localhost:5000/mintnft`,
+        `http://localhost:5001/mintnft`,
         formdata
       );
       console.log(response);
@@ -45,7 +45,7 @@ function Data() {
 
   const sign = async (e) => {
     e.preventDefault();
-    const response = await axios.get(`http://localhost:5000/signin`);
+    const response = await axios.get(`http://localhost:5001/signin`);
     console.log(response);
     setIsOpen(true);
     setIframeUrl(response.data);

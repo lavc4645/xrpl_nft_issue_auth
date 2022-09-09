@@ -458,92 +458,107 @@ app.post("/mintnft", async (req, res) => {
             //     "value": standbyAmountField.value
             //   }
             // }
-            const request2 = {
-              TransactionType: "NFTokenMint",
-              Account: walletaddress,
-              URI: uri,
-              Flags: 12,
-              TransferFee: 314,
-              Fee: 10,
-              Issuer: standby_wallet.classicAddress,
-              NFTokenTaxon: 0, //Required, but if you have no use for it, set to zero.
-            };
-
+            console.log("Wallet address", walletaddress);
             const tx_json = {
               TransactionType: "AccountSet",
-              Account: standby_wallet.classicAddress,
-              NFTokenMinter: walletaddress,
-              SetFlag: 12,
+              Account: walletaddress,
+              NFTokenMinter: standby_wallet.classicAddress,
+              SetFlag: 15,
+              Fee: "10",
             };
 
             const result = await client.submitAndWait(tx_json, {
-              wallet: standby_wallet,
-            });
+                wallet: walletaddress,
+              });
 
-            if (result.result.meta.TransactionResult == "tesSUCCESS") {
-              results += "\nAccount setting succeeded.";
-              results += JSON.stringify(result, null, 2);
-              console.log(results);
-            } else {
-              throw "Error sending transaction: ${result}";
-              results += "\nAccount setting failed.";
-              console.log(results);
-            }
-            console.log("Account set");
-
-            const subscription = await Sdk.payload.createAndSubscribe(
-              request2,
-              (event) => {
-                console.log("New payload event:", event.data);
-
-                //  The event data contains a property 'signed' (true or false), return :)
-                if (Object.keys(event.data).indexOf("signed") > -1) {
-                  return event.data;
-                }
+              if (result.result.meta.TransactionResult == "tesSUCCESS") {
+                results += "\nAccount setting succeeded.";
+                results += JSON.stringify(result, null, 2);
+                console.log(results);
+              } else {
+                throw "Error sending transaction: ${result}";
+                results += "\nAccount setting failed.";
+                console.log(results);
               }
-            );
+              const request2 = {
+                TransactionType: "NFTokenMint",
+                Account: standby_wallet.classicAddress,
+                URI: uri,
+                Flags: 12,
+                TransferFee: 314,
+                Fee: "10",
+                Issuer: walletaddress,
+                NFTokenTaxon: 0, //Required, but if you have no use for it, set to zero.
+              };
 
-            console.log(
-              "New payload created,URL:",
-              subscription.created.next.always
-            );
-            console.log(
-              "  > Pushed:",
-              subscription.created.pushed ? "yes" : "no"
-            );
+              const results = await client.submitAndWait(request2, {
+                wallet: standby_wallet,
+              });
+
+              if (result.result.meta.TransactionResult == "tesSUCCESS") {
+                results += "\nAccount setting succeeded.";
+                results += JSON.stringify(result, null, 2);
+                console.log(results);
+              } else {
+                throw "Error sending transaction: ${result}";
+                results += "\nAccount setting failed.";
+                console.log(results);
+              }
+            // const subscription = await Sdk.payload.createAndSubscribe(
+            //   tx_json,
+            //   (event) => {
+            //     console.log("New payload event:", event.data);
+
+            //     //  The event data contains a property 'signed' (true or false), return :)
+            //     if (Object.keys(event.data).indexOf("signed") > -1) {
+            //       return event.data;
+            //     }
+            //   }
+            // );
+
+            // console.log(
+            //   "New payload created,URL:",
+            //   subscription.created.next.always
+            // );
+            // console.log(
+            //   "  > Pushed:",
+            //   subscription.created.pushed ? "yes" : "no"
+            // );
 
             // wait the js engine untill the subscription payload is resolved
-            const resolveData = await subscription.resolved;
-            if (resolveData.signed === false) {
-              console.log(" The sign request was rejected :(");
-              res.setHeader(
-                "Access-Control-Allow-Methods",
-                "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-              );
+            // const resolveData = await subscription.resolved;
+            // if (resolveData.signed === false) {
+            //   console.log(" The sign request was rejected :(");
+            //   res.setHeader(
+            //     "Access-Control-Allow-Methods",
+            //     "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+            //   );
 
-              // Request headers you wish to allow
-              res.setHeader(
-                "Access-Control-Allow-Headers",
-                "X-Requested-With,content-type"
-              );
-              res.send("Rejected Sign by Owner");
-            } else {
-              console.log("Woohoo! The sign request was signed :)");
+            //   // Request headers you wish to allow
+            //   res.setHeader(
+            //     "Access-Control-Allow-Headers",
+            //     "X-Requested-With,content-type"
+            //   );
+            //   res.send("Rejected Sign by Owner");
+            // } else {
+            //   console.log("Woohoo! The sign request was signed :)");
 
-              const result = await Sdk.payload.get(resolveData.payload_uuidv4);
-              console.log("On ledger TX hash:", result.response.txid);
-              res.setHeader(
-                "Access-Control-Allow-Methods",
-                "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-              );
+            //   const result = await Sdk.payload.get(resolveData.payload_uuidv4);
+            //   console.log("On ledger TX hash:", result.response.txid);
 
-              // Request headers you wish to allow
-              res.setHeader(
-                "Access-Control-Allow-Headers",
-                "X-Requested-With,content-type"
-              );
-              res.send("NFT minted Successfully");
-            }
+              
+            //   res.setHeader(
+            //     "Access-Control-Allow-Methods",
+            //     "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+            //   );
+
+            //   // Request headers you wish to allow
+            //   res.setHeader(
+            //     "Access-Control-Allow-Headers",
+            //     "X-Requested-With,content-type"
+            //   );
+            //   res.send("NFT minted Successfully");
+            // }
 
             // console.log('New payload created,URL:', subscription.created.next.always)
             //console.log('  > Pushed:', subscription.created.pushed ? 'yes' : 'no')
@@ -599,6 +614,6 @@ app.post("/mintnft", async (req, res) => {
 //     client.disconnect();
 // })
 
-server.listen(5000, () => {
+server.listen(5001, () => {
   console.log("SERVER IS RUNNING");
 });
