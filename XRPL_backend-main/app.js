@@ -628,6 +628,6 @@ app.post("/mintnft", async (req, res) => {
 //     client.disconnect();
 // })
 
-server.listen(5000, () => {
+server.listen(5001, () => {
   console.log("SERVER IS RUNNING");
 });

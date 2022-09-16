@@ -7,7 +7,7 @@ import axios from "axios";
 
 import Modals from "./modal";
 import io from "socket.io-client";
-const socket = io.connect("http://localhost:5000");;
+const socket = io.connect("http://localhost:5001");
 function Purchase() {
   const value = new Proxy(new URLSearchParams(window.location.search), {
     get: (searchParams, prop) => searchParams.get(prop),
@@ -26,7 +26,7 @@ function Purchase() {
 
   const sign = async (e) => {
     e.preventDefault();
-    const response = await axios.get(`http://localhost:5000/signin`);
+    const response = await axios.get(`http://localhost:5001/signin`);
     console.log(response);
     setIsOpen(true);
     setIframeUrl(response.data);
@@ -41,7 +41,7 @@ function Purchase() {
     formdata.append("amount", buyamount);
     e.preventDefault();
     const response = await axios.post(
-      `http://localhost:5000/makebuyoffer`,
+      `http://localhost:5001/makebuyoffer`,
       formdata
     );
     console.log(response);
@@ -56,7 +56,7 @@ function Purchase() {
     formdata.append("amount", sellamount);
     e.preventDefault();
     const response = await axios.post(
-      `http://localhost:5000/makeselloffer`,
+      `http://localhost:5001/makeselloffer`,
       formdata
     );
     console.log(response);
@@ -72,7 +72,7 @@ function Purchase() {
   //     formdata.append("amount", sellamount);
   //     e.preventDefault();
   //     const response = await axios.post(
-  //       `http://192.168.20.76:5000/makeselloffer`,
+  //       `http://192.168.20.76:5001/makeselloffer`,
   //       formdata
   //     );
   //     console.log(response);
@@ -86,7 +86,7 @@ function Purchase() {
     formdata.append("buyoffer", buy_token_id);
 
     const response = await axios.post(
-      `http://localhost:5000/acceptbuyoffer`,
+      `http://localhost:5001/acceptbuyoffer`,
       formdata
     );
     console.log(response);
@@ -99,7 +99,7 @@ function Purchase() {
     formdata.append("selloffer", sell_token_id);
 
     const response = await axios.post(
-      `http://localhost:5000/acceptselloffer`,
+      `http://localhost:5001/acceptselloffer`,
       formdata
     );
     console.log(response);
@@ -265,13 +265,17 @@ function Purchase() {
                                 <td>{data.owner}</td>
                                 {walletaddress !== null ? (
                                   <td>
-                                    {walletaddress === value.issuer ? (<button 
-                                    onClick={() =>
-                                      acceptbuyoffer(data.nft_offer_index)
-                                    }
-                                  >
-                                    Accept Offer
-                                  </button>):""}
+                                    {walletaddress === value.issuer ? (
+                                      <button
+                                        onClick={() =>
+                                          acceptbuyoffer(data.nft_offer_index)
+                                        }
+                                      >
+                                        Accept Offer
+                                      </button>
+                                    ) : (
+                                      ""
+                                    )}
                                     {/* <button
                                       onClick={() =>
                                         acceptbuyoffer(data.nft_offer_index)
@@ -312,13 +316,17 @@ function Purchase() {
                                 <td>{data.nft_offer_index}</td>
                                 <td>{data.owner}</td>
                                 <td>
-                                  {walletaddress !== value.issuer ? (<button 
-                                    onClick={() =>
-                                      acceptselloffer(data.nft_offer_index)
-                                    }
-                                  >
-                                    Accept Offer
-                                  </button>):""}
+                                  {walletaddress !== value.issuer ? (
+                                    <button
+                                      onClick={() =>
+                                        acceptselloffer(data.nft_offer_index)
+                                      }
+                                    >
+                                      Accept Offer
+                                    </button>
+                                  ) : (
+                                    ""
+                                  )}
                                   {/* <button 
                                     onClick={() =>
                                       acceptselloffer(data.nft_offer_index)
